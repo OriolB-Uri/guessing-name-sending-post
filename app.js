@@ -36,6 +36,11 @@ function updateRemainingTime() {
   }
 }
 
+function stopTimer() {
+  let totalTime = clearInterval(timer);
+  return totalTime;
+}
+
 if (playGame) {
   subt.addEventListener("click", function (e) {
     e.preventDefault();
@@ -59,6 +64,7 @@ function validateGuess(guess) {
     if (numGuesses === 11) {
       displayGuesses(guess);
       displayMessage(`Game Over! Number was ${randomNumber}`);
+      stopTimer();
       endGame();
     } else {
       //Display previous guessed numbers
@@ -73,11 +79,20 @@ function validateGuess(guess) {
 async function sendScoreToServer() {
   // TODO: Establecer adecuadamente el valor de las propiedades elapsed_time y attempts
   const score = {
-    machine: "",
-    elapsed_time: 0,
-    attempts: 0,
+    machine: "Oriol",
+    elapsed_time: remainingSeconds - totalTime,
+    attempts: numGuesses - 1,
   };
   // TODO: CODE ME!! Haz el POST con la función fetch.
+  let response = await fetch("https://guessing-name-score-api.onrender.com/add-score", {
+    method: "POST",
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8'
+    },
+    body: JSON.stringify(score)
+  });
+  let result = await response.json();
+  console.log(result);
   console.log("Enviando los datos al servidor de King.com"); //POST
   // Enviamos los datos al endpoint
 }
@@ -85,10 +100,11 @@ async function sendScoreToServer() {
 function checkGuess(guess) {
   //Display clue if guess is too high or too low
   if (guess === randomNumber) {
+    stopTimer();
     displayMessage(
       `You guessed correctly! You can check all the scores at <a href="https://03i74i.csb.app/">https://03i74i.csb.app/</a> (provided that the developer did the work!!)`
     );
-
+    
     sendScoreToServer();
     endGame();
   } else if (guess < randomNumber) {
